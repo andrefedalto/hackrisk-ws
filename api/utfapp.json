@@ -1,0 +1,774 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.2.x",
+        "title": "UTFapp API",
+        "description": "Api do UTFapp usada por todas as suas interfaces.",
+        "termsOfService": "http://www.utfapp.com/termos/",
+        "contact": {
+            "name": "UTFapp team",
+            "email": "contato@utfapp.com",
+            "url": "http://utfapp.com"
+        },
+        "license": {
+            "name": "Proprietary",
+            "url": "http://utfapp.com"
+        }
+    },
+    "host": "dev.utfapp.com",
+    "basePath": "/ws",
+    "tags": [
+        {
+            "name": "auth",
+            "description": "Autenticação do usuário"
+        },
+        {
+            "name": "aluno",
+            "description": "Informações do aluno"
+        },
+        {
+            "name": "biblioteca",
+            "description": "Informações da biblioteca"
+        },
+        {
+            "name": "cardapio",
+            "description": "Informações do cardápio"
+        },
+        {
+            "name": "campus",
+            "description": "Informações dos campi da universidade"
+        }
+    ],
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/auth/aluno": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Autenticação do aluno",
+                "description": "Autentica o usuário e retorna uma chave que deve ser usada para todos os outros requests no sistema (exceto biblioteca). Note que a senha só é verificada no portal do aluno uma vez a cada 24 horas, sendo as outras vezes verificada só no banco de dados do UTFapp. Caso a senha seja inválida no banco de dados (aluno usando nova senha, por exemplo), por padrão o webservice irá verificar junto ao portal do aluno antes de retornar. Caso queira forçar a verificação junto ao portal do aluno use o parâmetro 'forceUpdate'. Caso queira verificar apenas no banco de dados, sem usar o portal do aluno caso a senha esteja errada, use o parâmetro 'fallBack'. Por padrão deixe esses campos em branco que o webservice irá gerenciar tudo automaticamente.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "codigoAluno",
+                        "in": "header",
+                        "description": "Código do aluno",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "senhaAluno",
+                        "in": "header",
+                        "description": "Senha do portal do aluno",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/idCampusHeader"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com a chave de autenticação"
+                    },
+                    "401": {
+                        "description": "Acesso não autorizado para as credenciais fornecidas"
+                    }
+                }
+            }
+        },
+        "/auth/biblioteca": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Autenticação da biblioteca",
+                "description": "Autentica o usuário na biblioteca e retorna uma chave que deve ser usada para todos os outros requests para a biblioteca (menos busca de livros).",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "codigoAluno",
+                        "in": "header",
+                        "description": "Código do aluno",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "senhaBiblioteca",
+                        "in": "header",
+                        "description": "Senha do portal do aluno",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com a chave de autenticação"
+                    },
+                    "401": {
+                        "description": "Acesso não autorizado para as credenciais fornecidas"
+                    }
+                }
+            }
+        },
+        "/aluno": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna dados do aluno",
+                "description": "Retorna dados do aluno, incluindo os cursos em que ele está matriculado. O campo idCurso de cada curso é usado pra buscar mais informações de cada curso.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados do aluno e dos cursos"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Aluno não encontrado"
+                    }
+                }
+            }
+        },
+        "/aluno/{idCurso}": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna o curso do aluno",
+                "description": "Retorna informações especificas sobre o curso do aluno",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/idCurso"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados do curso"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Curso não encontrado"
+                    }
+                }
+            }
+        },
+        "/aluno/{idCurso}/boletim": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna o boletim do aluno no curso especificado",
+                "description": "Retorna o boletim do aluno para o {idCurso} informado. Note que o boletim retorna apenas o boletim para o semestre corrente, para informações de matérias já concluídas ver /aluno/{idCurso}/historico.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/idCurso"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados do boletim"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Boletim não encontrado"
+                    }
+                }
+            }
+        },
+        "/aluno/{idCurso}/grade": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna a grade horária do aluno para o curso especificado",
+                "description": "Retorna a grade horária do aluno para o {idCurso} informado. Note que existe a opção de receber a grade horária completa ou reduzida, onde duas ou mais aulas seguidas da mesma matéria na mesma sala são retornadas como apenas uma aula, com horário de início e término englobando todas.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/idCurso"
+                    },
+                    {
+                        "$ref": "#/parameters/gradeCompleta"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados da grade horária"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Grade horária não encontrado"
+                    }
+                }
+            }
+        },
+        "/aluno/{idCurso}/historico": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna o histórico do aluno no curso especificado",
+                "description": "Retorna o histórico do aluno para o {idCurso} informado. As matérias cursadas atualmente são mostradas em detalhes resumidos.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/idCurso"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados do histórico"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Histórico não encontrado"
+                    }
+                }
+            }
+        },
+        "/aluno/{idCurso}/matriz": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna a matriz do curso especificado",
+                "description": "Retorna a matriz do {idCurso} informado e personalizada pro usuário. Relaciona os dados da matriz, boletim e histórico pra retornar uma matriz detalhada pro usuario, que informa quais materias ja está aprovado, quais está cursando, devendo ou que não pode fazer por faltar pré-requisito. Retorna também o historico de cada materia já cursada.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/idCurso"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados da matriz"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Matriz não encontrada"
+                    }
+                }
+            }
+        },
+        "/aluno/{idCurso}/all": {
+            "get": {
+                "tags": [
+                    "aluno"
+                ],
+                "summary": "Retorna todas as informações em apenas um request",
+                "description": "Com apenas um request retorna todas as informações do aluno para determinado curso, incluindo boletim, grade e histórico. Note que se as informações ainda não estiverem no banco de dados, a resposta pode demorar já que as informações precisam ser tratadas de diversos locais do portal do aluno.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Aluno"
+                    },
+                    {
+                        "$ref": "#/parameters/idCurso"
+                    },
+                    {
+                        "$ref": "#/parameters/gradeCompleta"
+                    },
+                    {
+                        "$ref": "#/parameters/forceUpdate"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os dados completos"
+                    },
+                    "403": {
+                        "description": "Chave de acesso inválida"
+                    },
+                    "404": {
+                        "description": "Dados não encontrados"
+                    }
+                }
+            }
+        },
+        "/biblioteca/buscar/{titulo}": {
+            "get": {
+                "tags": [
+                    "biblioteca"
+                ],
+                "summary": "Busca por um título na biblioteca",
+                "description": "Busca um título na biblioteca de acordo com os parâmetros informados. Cada página retorna apenas 5 resultados, então para mais resultados deverá fazer requests para as páginas seguintes.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "titulo",
+                        "in": "path",
+                        "description": "Título para buscar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pagina",
+                        "in": "query",
+                        "description": "Página dos resultados (usa 1 se não informado)",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "campo",
+                        "in": "query",
+                        "description": "Campo de busca (usa TITULO se não informado)",
+                        "required": false,
+                        "items": {
+                            "type": "string"
+                        },
+                        "enum": [
+                            "LIVRE",
+                            "TITULO",
+                            "AUTOR",
+                            "ASSUNTO"
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "tipoMaterial",
+                        "in": "query",
+                        "description": "Tipo de material, ver em /biblioteca/materiais (busca em todos se não informado)",
+                        "required": false,
+                        "items": {
+                            "type": "integer"
+                        },
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                            13,
+                            14,
+                            15,
+                            16,
+                            17,
+                            18,
+                            19,
+                            21,
+                            22,
+                            23,
+                            24,
+                            50,
+                            51,
+                            52,
+                            53,
+                            54,
+                            55,
+                            56,
+                            57
+                        ],
+                        "type": "array",
+                        "collectionFormat": "csv"
+                    },
+                    {
+                        "name": "unidade",
+                        "in": "query",
+                        "description": "Unidade da biblioteca, ver em /biblioteca/unidades (busca em todas se não informado)",
+                        "required": false,
+                        "items": {
+                            "type": "integer"
+                        },
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                            13,
+                            14
+                        ],
+                        "type": "array",
+                        "collectionFormat": "csv"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os resultados da pesquisa"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "413": {
+                        "description": "Muitos resultados encontrados, refine a sua busca."
+                    }
+                }
+            }
+        },
+        "/biblioteca/titulo/{codigoAcervo}": {
+            "get": {
+                "tags": [
+                    "biblioteca"
+                ],
+                "summary": "Busca informações de um título",
+                "description": "Retorna informações adicionais de um título, como autor e exemplares disponíveis em cada unidade.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "codigoAcervo",
+                        "in": "path",
+                        "description": "Codigo do livro",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "key",
+                        "in": "query",
+                        "description": "Workaround para requests assíncronos",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os resultados da pesquisa"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "500": {
+                        "description": "Erro desconhecido"
+                    }
+                }
+            }
+        },
+        "/biblioteca/emprestimos": {
+            "get": {
+                "tags": [
+                    "biblioteca"
+                ],
+                "summary": "Busca livros emprestados pelo aluno",
+                "description": "Recebe a chave de autenticação e retorna a lista de livros emprestados pelo aluno.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Biblioteca"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com os resultados da pesquisa"
+                    },
+                    "403": {
+                        "description": "Chave de autenticação inválida"
+                    },
+                    "404": {
+                        "description": "Aluno não possui livros emprestados"
+                    },
+                    "500": {
+                        "description": "Erro desconhecido"
+                    }
+                }
+            }
+        },
+        "/biblioteca/renovar": {
+            "put": {
+                "tags": [
+                    "biblioteca"
+                ],
+                "summary": "Renova livro emprestado",
+                "description": "Se ainda houver renovações restantes e a autenticação for válida, renova o empréstimo do livro",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Auth-Biblioteca"
+                    },
+                    {
+                        "name": "codAcervo",
+                        "in": "formData",
+                        "description": "Código do título no acervo",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "codExemplar",
+                        "in": "formData",
+                        "description": "Código do exemplar do título",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta com a nova data de devolução"
+                    },
+                    "403": {
+                        "description": "Chave de autenticação inválida"
+                    },
+                    "500": {
+                        "description": "Erro desconhecido"
+                    }
+                }
+            }
+        },
+        "/cardapio": {
+            "get": {
+                "tags": [
+                    "cardapio"
+                ],
+                "summary": "Retorna o cardápio do campus para determinado período",
+                "description": "Os parâmetros informados não são obrigatórios. Se não forem informados, \no webservice usará valores padrões para \"câmpus\" (1, curitiba), \n\"from\" (3 dias atrás da data do request e \"to\" (7 dias após a data do \nrequest). Os campos \"from\" e \"to\" aceitam diversos tipos de strings, \nveja mais em http://php.net/manual/en/function.strtotime.php\n",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/idCampusQuery"
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "data de início",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "data de término",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "resposta com o cardápio"
+                    },
+                    "404": {
+                        "description": "cardápio não encontrado"
+                    }
+                }
+            }
+        },
+        "/campi": {
+            "get": {
+                "tags": [
+                    "campus"
+                ],
+                "summary": "Retorna a lista de campus cadastrados",
+                "description": "Lista de IDs e nome dos campus da universidade. Como essa lista é praticamente estática, sugerimos colocá-la 'hardcoded' e evitar ter que buscar no webservice sempre que necessário.\n",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/debug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "resposta com a lista de campi"
+                    },
+                    "404": {
+                        "description": "lista não encontrada"
+                    }
+                }
+            }
+        }
+    },
+    "parameters": {
+        "Auth-Aluno": {
+            "name": "Auth-Aluno",
+            "in": "header",
+            "description": "Chave de autenticação do aluno",
+            "required": true,
+            "type": "string"
+        },
+        "Auth-Biblioteca": {
+            "name": "Auth-Biblioteca",
+            "in": "header",
+            "description": "Chave de autenticação da biblioteca",
+            "required": true,
+            "type": "string"
+        },
+        "forceUpdate": {
+            "name": "forceUpdate",
+            "in": "query",
+            "description": "Forçar verificação da senha no portal do aluno?",
+            "required": false,
+            "type": "boolean"
+        },
+        "debug": {
+            "name": "debug",
+            "in": "query",
+            "description": "Ativa o modo de debug do webservice",
+            "required": false,
+            "type": "boolean"
+        },
+        "idCurso": {
+            "name": "idCurso",
+            "in": "path",
+            "description": "ID do curso, disponível em /aluno",
+            "required": true,
+            "type": "integer"
+        },
+        "idCampusHeader": {
+            "name": "idCampus",
+            "in": "header",
+            "description": "ID do câmpus do aluno, ver em /campi",
+            "required": true,
+            "type": "integer"
+        },
+        "idCampusQuery": {
+            "name": "idCampus",
+            "in": "query",
+            "description": "ID do câmpus, ver em /campi",
+            "required": false,
+            "type": "integer"
+        },
+        "gradeCompleta": {
+            "name": "gradeCompleta",
+            "in": "query",
+            "description": "Retornar a grade completa sem combinar aulas geminadas?",
+            "required": false,
+            "type": "boolean"
+        }
+    }
+}
