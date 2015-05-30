@@ -40,8 +40,19 @@ $log = Log::getInstance();
 require_once('./classes/DataManager.php');
 
 
-require_once('./webservices/aluno.php');
+$app->get(
+    '/asd',
+    function () use ($app, $db, $log)
+    {
+        $data = $db->get('prescriptions');
 
+
+        $app->response()->status($log->getLastCode());
+
+        buildOutput($data, $app->request()->params('debug'));
+
+    }
+);
 
 $app->run();
 

@@ -8,17 +8,10 @@
 
 
 $app->get(
-    '/aluno',
+    '/prescriptions',
     function () use ($app, $db, $log)
     {
-        if ($app->request()->params('forceUpdate') == 'true')
-            $forceUpdate = true;
-        else
-            $forceUpdate = false;
-
-        $aluno = new Aluno($app->request->headers->get('Auth-Aluno'));
-        $aluno->forceUpdate($forceUpdate);
-        $data = $aluno->buildAluno();
+        $data = $db->get('prescriptions');
 
 
         $app->response()->status($log->getLastCode());

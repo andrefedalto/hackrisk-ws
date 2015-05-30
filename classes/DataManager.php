@@ -54,7 +54,8 @@ class DataManager {
             'doseUnit'            => true,
             'days'            => true,
             'frequency'            => true,
-            'start'            => false
+            'start'            => false,
+            'reason'        => true
         )
 
     );
