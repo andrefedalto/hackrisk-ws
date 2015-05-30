@@ -31,7 +31,7 @@ function buildOutput($data, $debug = false)
         'data'      => json_encode($log->getLogs())
     );
 
-    $db->insert('log', $_log);
+//    $db->insert('log', $_log);
 
     echo json_encode($output, JSON_PRETTY_PRINT);
 }

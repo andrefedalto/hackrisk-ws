@@ -27,11 +27,12 @@ class DataManager {
             'gender'            => true
         ),
 
-        'Ecam' => array(
+        'Exam' => array(
             'idExam'            => false,
             'idPatient'         => true,
             'examType'              => true,
-            'examValue'              => true
+            'examValue'              => true,
+            'date'              => true
         ),
 
         'Drug' => array(
@@ -55,7 +56,7 @@ class DataManager {
             'days'            => true,
             'frequency'            => true,
             'start'            => false,
-            'reason'        => true
+            'reason'        => false
         )
 
     );

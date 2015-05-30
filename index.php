@@ -41,18 +41,164 @@ require_once('./classes/DataManager.php');
 
 
 $app->get(
-    '/asd',
+    '/',
     function () use ($app, $db, $log)
     {
-        $data = $db->get('prescriptions');
+        $app->response->headers->set('Content-Type', 'text/html');
 
 
-        $app->response()->status($log->getLastCode());
+        echo "welcome to clara!";
+
+    }
+);
+
+
+$app->get(
+    '/prescriptions',
+    function () use ($app, $db, $log)
+    {
+
+        $db->join("drug d", "d.idDrug = p.idDrug", "LEFT");
+        $data = $db->get ("prescription p", null, "p.*, d.*");
+
+
+        $app->response()->status(200);
 
         buildOutput($data, $app->request()->params('debug'));
 
     }
 );
+
+
+$app->post(
+    '/prescriptions',
+    function () use ($app, $db, $log)
+    {
+        $data = json_decode($app->request->getBody(), true);
+
+
+        $_drug = new DataManager('Drug');
+        $_drug->setField('drugName', $data['drugName']);
+        $_drug->save();
+
+        unset($data['drugName']);
+
+        $_prescription = new DataManager('Prescription');
+        $_prescription->setField('idDoctor', 1);
+        $_prescription->setField('idPatient', 1);
+        $_prescription->setField('idDrug', $_drug->getField('idDrug'));
+        $_prescription->setField('date', date("Y-m-d H:i:s"));
+        $_prescription->setField('dose', $data['dose']);
+        $_prescription->setField('doseUnit', $data['doseUnit']);
+        $_prescription->setField('days', $data['days']);
+        $_prescription->setField('frequency', $data['frequency']);
+        $_prescription->setField('reason', $data['reason']);
+        $_prescription->save();
+
+        $db->join("drug d", "d.idDrug = p.idDrug", "LEFT");
+        $db->where('p.idPrescription', $_prescription->getField('idPrescription'));
+        $data = $db->get ("prescription p", null, "p.*, d.*");
+
+
+
+
+        $app->response()->status(200);
+
+        buildOutput($data, $app->request()->params('debug'));
+
+
+    }
+);
+
+
+$app->put(
+    '/prescriptions/:idPrescription',
+    function ($idPrescription) use ($app, $db, $log)
+    {
+
+        $_prescription = new DataManager('Prescription');
+        $_prescription->load($idPrescription);
+        $_prescription->setField('start', $app->request->headers->get('startTime'));
+        $_prescription->save();
+
+
+        $db->join("drug d", "d.idDrug = p.idDrug", "LEFT");
+        $db->where('p.idPrescription', $_prescription->getField('idPrescription'));
+        $data = $db->get ("prescription p", null, "p.*, d.*");
+
+
+
+
+        $app->response()->status(200);
+
+        buildOutput($data, $app->request()->params('debug'));
+
+
+    }
+);
+
+
+$app->post(
+    '/exams',
+    function () use ($app, $db, $log)
+    {
+
+        $_exam = new DataManager('Exam');
+        $_exam->setField('idPatient', 1);
+        $_exam->setField('examType', $app->request->headers->get('examType'));
+        $_exam->setField('examValue', $app->request->headers->get('examValue'));
+        $_exam->setField('date', date("Y-m-d H:i:s"));
+        $_exam->save();
+
+
+        $data = $_exam->getField();
+
+
+
+
+        $app->response()->status(200);
+
+        buildOutput($data, $app->request()->params('debug'));
+
+
+    }
+);
+
+
+
+$app->post(
+    '/feeling',
+    function () use ($app, $db, $log)
+    {
+
+        if ($app->request->headers->get('feel') < 1)
+            $feel = 1;
+        else if ($app->request->headers->get('feel') > 10)
+            $feel = 10;
+        else
+            $feel = $app->request->headers->get('feel');
+
+        $_feeling = new DataManager('Feel');
+        $_feeling->setField('idPatient', 1);
+        $_feeling->setField('feel', $feel);
+        $_feeling->setField('date', date("Y-m-d H:i:s"));
+        $_feeling->save();
+
+
+        $data = $_feeling->getField();
+
+
+
+
+        $app->response()->status(200);
+
+        buildOutput($data, $app->request()->params('debug'));
+
+
+    }
+);
+
+
 
 $app->run();
 
